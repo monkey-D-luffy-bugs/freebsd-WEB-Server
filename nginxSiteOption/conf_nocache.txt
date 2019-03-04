@@ -1,0 +1,84 @@
+#######################################################
+#                      www.happytime.one
+
+server {
+        listen 801; 
+        listen [::]:801; 
+        server_name     happytime.one www.happytime.one;
+        keepalive_timeout    120;
+        
+        listen          4431 ssl;
+        listen          [::]:4431 ssl;
+        ssl_certificate /var/www/ca/happytime.one/fullchain.pem;
+        ssl_certificate_key /var/www/ca/happytime.one/privkey.pem;
+        ##############################################
+
+        error_log /dev/null;
+        access_log /dev/null;
+
+        root /var/www/www.happytime.one;
+
+        set $skip_cache 0;
+        #post访问不缓存
+        if ($request_method = POST) {
+            set $skip_cache 1;
+        }   
+        #动态查询不缓存
+        if ($query_string != "") {
+            set $skip_cache 1;
+        }   
+        #后台等特定页面不缓存（其他需求请自行添加即可）
+        if ($request_uri ~* "/wp-admin/|/xmlrpc.php|wp-.*.php|/feed/|index.php|sitemap(_index)?.xml") {
+            set $skip_cache 1;
+        }   
+        #对登录用户、评论过的用户不展示缓存（这个规则并没有使用，所有人看到的都是缓存）
+        if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_no_cache|wordpress_logged_in") {
+            set $skip_cache 1;
+        }
+
+
+        location ~ ^.+\.php {
+            fastcgi_split_path_info ^(.+\.php)(.*)$;
+            fastcgi_pass   unix:/var/run/php7-fpm-www.happytime.one.sock;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root/$fastcgi_script_name;
+            include fastcgi_params;
+            fastcgi_param  QUERY_STRING     $query_string;
+            fastcgi_param  REQUEST_METHOD   $request_method;
+            fastcgi_param  CONTENT_TYPE     $content_type;
+            fastcgi_param  CONTENT_LENGTH   $content_length;
+            fastcgi_param PHP_ADMIN_VALUE "cgi.fix_pathinfo=1";
+            fastcgi_param PHP_ADMIN_VALUE   "include_path= .:/var/www/globals/www.happytime.one/lib:/usr/share/php/";
+            fastcgi_param PHP_ADMIN_VALUE   "open_basedir= $document_root/:/tmp:/usr/share/php/";
+            fastcgi_param PHP_ADMIN_VALUE   "upload_max_filesize= 50M";
+            fastcgi_param PHP_ADMIN_VALUE   "max_execution_time= 30";
+            fastcgi_param PHP_ADMIN_VALUE   "max_input_time= 60";
+            fastcgi_param PHP_ADMIN_VALUE   "memory_limit= 128M";
+            fastcgi_param PHP_ADMIN_VALUE   "output_buffering= 4096";
+            fastcgi_param PHP_ADMIN_VALUE   "disable_functions= system,exec,shell_exec,passthru,error_log,dl,sys_getloadavg,pfsockopen,openlog,syslog,readlink,symlink,link,leak,popen,escapeshellcmd,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,escapeshellarg,pcntl_exec,show_source,highlight_file,ini_restore,apache_child_terminate,apache_get_modules,apache_get_version,apache_getenv,apache_note,apache_setenv,virtual,mb_send_mail,set_time_limit,max_execution_time,php_uname,disk_free_space,diskfreespace,stream_copy_to_stream";
+            fastcgi_param PHP_ADMIN_VALUE   "allow_url_fopen= off";
+            fastcgi_param PHP_ADMIN_VALUE   "expose_php= Off";
+            fastcgi_param PHP_ADMIN_VALUE   "display_errors= Off";
+            fastcgi_param PHP_ADMIN_VALUE   "post_max_size= 50M";
+            fastcgi_intercept_errors        on;
+            fastcgi_ignore_client_abort     on;
+            fastcgi_read_timeout 180;
+
+
+#            add_header Fastcgi-Cache $upstream_cache_status;
+#            fastcgi_cache_bypass $skip_cache;
+#            fastcgi_no_cache $skip_cache;
+#            fastcgi_cache wp_fastcgi;
+#            fastcgi_cache_valid 2h;
+        }
+
+
+        location / {
+            #定义首页索引文件的名称
+            index index.php index.html index.htm;
+            #下面这行和后面的跟wordpress有关
+            try_files $uri $uri/ /index.php?$args;
+        }
+#        rewrite /wp-admin$ $scheme://$host$uri/ permanent;
+
+}
