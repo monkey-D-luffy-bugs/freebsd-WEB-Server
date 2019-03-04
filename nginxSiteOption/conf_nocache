@@ -1,0 +1,23 @@
+[www.happytime.one]
+user = www.happytime.one
+group = www.happytime.one
+listen = /var/run/php7-fpm-www.happytime.one.sock
+listen.owner = www
+listen.group = www
+php_admin_value[include_path] = .:/var/www/globals/www.happytime.one/lib
+php_admin_value[open_basedir] = /var/www/www.happytime.one:/tmp
+php_admin_value[upload_max_filesize] = 50M
+php_admin_value[max_execution_time] = 30
+php_admin_value[max_input_time] = 60
+php_admin_value[memory_limit] = 256M
+php_admin_value[output_buffering] = 4096
+php_admin_value[disable_functions] = system,exec,shell_exec,passthru,error_log,dl,sys_getloadavg,pfsockopen,openlog,syslog,readlink,symlink,link,leak,popen,escapeshellcmd,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,escapeshellarg,pcntl_exec,show_source,highlight_file,ini_restore,apache_child_terminate,apache_get_modules,apache_get_version,apache_getenv,apache_note,apache_setenv,virtual,mb_send_mail,set_time_limit,max_execution_time,php_uname,disk_free_space,diskfreespace,stream_copy_to_stream
+php_admin_flag[allow_url_fopen] = off
+php_admin_flag[expose_php] = Off
+php_admin_flag[display_errors] = Off
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+chdir = /
