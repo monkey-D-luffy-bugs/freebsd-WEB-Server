@@ -1,4 +1,4 @@
-DefaultAddress 192.168.100.100
+DefaultAddress  192.168.1.254
 UseIPv6				on
 # If set on you can experience a longer connection delay in many cases.
 IdentLookups			off
@@ -6,7 +6,7 @@ IdentLookups			off
 ServerName			"Debian"
 # Set to inetd only if you would run proftpd by inetd/xinetd.
 # Read README.Debian for more information on proper configuration.
-ServerType				standalone
+ServerType			standalone
 DeferWelcome			off
 
 MultilineRFC2228		on
